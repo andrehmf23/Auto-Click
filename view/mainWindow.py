@@ -143,15 +143,15 @@ class MainWindow(QtWidgets.QMainWindow):
             QPushButton {
                 background-color: transparent;
                 border: none;
-                background-image: url('view/assets/settingsw.png');
+                background-image: url('assets/settingsw.png');
                 background-position: center;
                 background-repeat: no-repeat;
             }
             QPushButton:hover {
-                background-image: url('view/assets/settingsb.png');
+                background-image: url('assets/settingsb.png');
             }
             QPushButton:pressed {
-                background-image: url('view/assets/settingsy.png');
+                background-image: url('assets/settingsy.png');
             }
             """
         )
