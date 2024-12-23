@@ -1,0 +1,22 @@
+# Ignorar arquivos gerados pelo PyInstaller
+/dist/
+/build/
+*.spec
+
+# Ignorar ambientes virtuais
+/venv/
+/env/
+
+# Ignorar arquivos de cache
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar configurações do editor (exemplo para VSCode)
+.vscode/
+
+# Ignorar a pasta de assets se não precisar versioná-la
+/assets/
