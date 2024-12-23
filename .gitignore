@@ -1,5 +1,6 @@
 # Ignorar arquivos gerados pelo PyInstaller
 /dist/
+/dist/assets
 /build/
 *.spec
 
