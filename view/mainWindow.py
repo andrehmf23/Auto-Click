@@ -4,6 +4,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 
 from view.component.hotbar import CustomHotBar
 from view.component.square import CustomCheckBox
+from view.settingWindow import SettingWindow
 
 """
 container - widget
@@ -21,7 +22,11 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.setWindowTitle("AutoClicker")
         self.setGeometry(100, 100, 400, 300)
-        self.setFixedSize(350, 150)
+        self.setFixedSize(450, 150)
+
+        self.hold = False
+        self.active_key = "q"
+        self.setting_window = None
 
         # Layout principal da janela
         layout_main = QtWidgets.QVBoxLayout()
@@ -67,8 +72,8 @@ class MainWindow(QtWidgets.QMainWindow):
         tools_layout.addWidget(self.checkbox, alignment=QtCore.Qt.AlignLeft)
 
         # QLabel "timer"
-        self.label_auto = QtWidgets.QLabel("Timer:", self)
-        self.label_auto.setStyleSheet(
+        self.label_key = QtWidgets.QLabel("Timer:", self)
+        self.label_key.setStyleSheet(
             """
             QLabel {
                 font-size: 16px;
@@ -77,7 +82,7 @@ class MainWindow(QtWidgets.QMainWindow):
             }
             """
         )
-        tools_layout.addWidget(self.label_auto, alignment=QtCore.Qt.AlignLeft)
+        tools_layout.addWidget(self.label_key, alignment=QtCore.Qt.AlignLeft)
 
         # Input que aceita apenas números
         self.number_input = QtWidgets.QLineEdit()
@@ -108,8 +113,8 @@ class MainWindow(QtWidgets.QMainWindow):
         tools_layout.addWidget(self.number_input, alignment=QtCore.Qt.AlignLeft)
 
         # QLabel "auto"
-        self.label_auto = QtWidgets.QLabel("Auto: ", self)
-        self.label_auto.setStyleSheet(
+        self.label_key = QtWidgets.QLabel("Key: ", self)
+        self.label_key.setStyleSheet(
             """
             QLabel {
                 font-size: 16px;
@@ -117,11 +122,11 @@ class MainWindow(QtWidgets.QMainWindow):
             }
             """
         )
-        tools_layout.addWidget(self.label_auto, alignment=QtCore.Qt.AlignLeft)
+        tools_layout.addWidget(self.label_key, alignment=QtCore.Qt.AlignRight)
 
         # QLabel "key"
-        self.label_auto = QtWidgets.QLabel("Q", self)
-        self.label_auto.setStyleSheet(
+        self.label_key = QtWidgets.QLabel("q", self)
+        self.label_key.setStyleSheet(
             """
             QLabel {
                 font-size: 16px;
@@ -130,12 +135,12 @@ class MainWindow(QtWidgets.QMainWindow):
             }
             """
         )
-        tools_layout.addWidget(self.label_auto, alignment=QtCore.Qt.AlignLeft)
+        tools_layout.addWidget(self.label_key, alignment=QtCore.Qt.AlignLeft)
 
         # QLabel "timer"
-        self.settings_button = QtWidgets.QPushButton("", self)
-        self.settings_button.setFixedSize(40, 40)
-        self.settings_button.setStyleSheet(
+        self.setting_button = QtWidgets.QPushButton("", self)
+        self.setting_button.setFixedSize(40, 40)
+        self.setting_button.setStyleSheet(
             """
             QPushButton {
                 background-color: transparent;
@@ -152,7 +157,8 @@ class MainWindow(QtWidgets.QMainWindow):
             }
             """
         )
-        tools_layout.addWidget(self.settings_button, alignment=QtCore.Qt.AlignLeft)
+        self.setting_button.clicked.connect(self.open_setting_window)
+        tools_layout.addWidget(self.setting_button, alignment=QtCore.Qt.AlignLeft)
 
         tools_widget = QtWidgets.QWidget()
         tools_widget.setLayout(tools_layout)
@@ -185,23 +191,24 @@ class MainWindow(QtWidgets.QMainWindow):
         # Inicia a captura global
         self.start_key_listener()
 
-    """
-    def keyPressEvent(self, event):
-        Captura eventos de tecla pressionada.
-        if event.key() == self.expected_key:
-            self.checkbox.setChecked(not self.checkbox.isChecked())
-        else:
-            self.timer_label.setText("Tecla incorreta. Tente novamente!")
-    """
-
     def start_key_listener(self):
         """Inicia o monitoramento de teclas globalmente."""
-        keyboard.add_hotkey('q', self.on_key_press, args=('Q',))
+        keyboard.on_press_key(self.active_key, self.on_key_press)
+        keyboard.on_release_key(self.active_key, self.on_key_release)
 
-    def on_key_press(self, key):
+    def on_key_press(self, event):
         """Ação executada quando a tecla 'Q' for pressionada."""
-        self.checkbox.setChecked(not self.checkbox.isChecked())
-        print(f"A tecla '{key}' foi pressionada!")  # Também loga no terminal
+        if (not self.hold) or (self.hold and not self.checkbox.isChecked()):
+            self.checkbox.setChecked(not self.checkbox.isChecked())
+            self.timer.start(int(1000 * self.timer_average))  # Reinicia o temporizador
+            print("Auto-clique ativado!")
+
+    def on_key_release(self, event):
+        """Ação executada quando a tecla 'Q' for liberada."""
+        if self.checkbox.isChecked() and self.hold:
+            self.checkbox.setChecked(False)
+            self.timer.stop()  # Para o temporizador
+            print("Auto-clique desativado!")
 
     def closeEvent(self, event):
         """Remove os ganchos globais ao fechar a aplicação."""
@@ -222,3 +229,26 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timer_average = float(text)  # Atualiza o limite
             self.timer_label.setText(f"[ tap: {self.time_elapsed} / {self.timer_average} sec ]")
             self.timer.start(int(1000 * self.timer_average))  # Reinicia o temporizador
+
+    def open_setting_window(self):
+        """Abre a janela de configuração sem fechar a janela principal."""
+        if self.setting_window is None or not self.setting_window.isVisible():
+            self.setting_window = SettingWindow(hold_ref=[self.hold], current_key=self.active_key)  # Passa referência de hold
+            self.setting_window.hold_changed.connect(self.update_hold)  # Conecta sinal para sincronizar alterações
+            self.setting_window.key_changed.connect(self.update_key)  # Conecta sinal
+            self.setting_window.show()
+        else:
+            self.setting_window.raise_()
+            self.setting_window.activateWindow()
+
+    def update_key(self, new_key):
+        """Atualiza a tecla usada para o auto-clique."""
+        self.active_key = new_key
+        self.label_key.setText(new_key)
+        self.start_key_listener()  # Reinicia o listener com a nova tecla
+        print(f"Tecla atualizada para: {self.active_key}")
+
+    def update_hold(self, new_hold):
+        """Atualiza o estado de hold baseado na configuração da SettingWindow."""
+        self.hold = new_hold
+        print(f"Novo estado de hold: {self.hold}")
