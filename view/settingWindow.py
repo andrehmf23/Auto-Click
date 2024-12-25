@@ -1,5 +1,5 @@
 import keyboard
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from PyQt5.QtCore import pyqtSignal
 
@@ -15,9 +15,46 @@ class SettingWindow(QtWidgets.QWidget):
 
         self.setWindowTitle("Settings")
         self.setGeometry(100, 100, 300, 200)
+        self.setFixedSize(300, 250)
+        self.setWindowIcon(QtGui.QIcon())
+
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #303841;
+                border-radius: 10px;
+                padding: 10px;
+                font-family: Arial, sans-serif;
+            }
+
+            QLabel {
+                font-size: 16px;
+                color: #FFFFFF;
+                margin-bottom: 10px;
+            }
+
+            QPushButton {
+                background-color: #3A4750;
+                color: white;
+                font-size: 14px;
+                border: none;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 10px;
+                cursor: pointer;
+            }
+
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+
+            QPushButton:pressed {
+                background-color: #388E3C;
+            }
+        """)
 
         # Mostra o valor atual de hold
-        self.label = QtWidgets.QLabel(f"Hold: {self.hold_ref[0]}")
+        self.label = QtWidgets.QLabel(f"Hold: {self.hold_ref}")
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
 
         # Botão para alternar o valor de hold
         self.toggle_button = QtWidgets.QPushButton("Toggle Hold")
@@ -26,13 +63,13 @@ class SettingWindow(QtWidgets.QWidget):
         # Label para mostrar a tecla ativa
         self.key_label = QtWidgets.QLabel(f"Tecla atual: {self.current_key}", self)
         self.key_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.key_label.setStyleSheet("font-size: 16px; color: #EEEEEE;")
 
         # Botão para capturar a tecla
         self.capture_button = QtWidgets.QPushButton("Capturar Tecla", self)
         self.capture_button.clicked.connect(self.capture_key)
 
-        layout = QtWidgets.QVBoxLayout(self)
+        # Layout
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.label)
         layout.addWidget(self.toggle_button)
         layout.addWidget(self.key_label)
@@ -55,6 +92,6 @@ class SettingWindow(QtWidgets.QWidget):
 
     def toggle_hold(self):
         """Altera o valor de hold e emite um sinal com o novo estado."""
-        self.hold_ref[0] = not self.hold_ref[0]
-        self.label.setText(f"Hold: {self.hold_ref[0]}")
-        self.hold_changed.emit(self.hold_ref[0])  # Emite o sinal
+        self.hold_ref = not self.hold_ref
+        self.label.setText(f"Hold: {self.hold_ref}")
+        self.hold_changed.emit(self.hold_ref)  # Emite o sinal

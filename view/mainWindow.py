@@ -186,7 +186,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Criação e configuração do temporizador
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update_timer)
-        self.timer.start(int(1000 * self.timer_average))  # Reinicia o temporizador
+        self.timer.start(int(1000 * self.timer_average))
 
         # Inicia a captura global
         self.start_key_listener()
@@ -197,18 +197,17 @@ class MainWindow(QtWidgets.QMainWindow):
         keyboard.on_release_key(self.active_key, self.on_key_release)
 
     def on_key_press(self, event):
-        """Ação executada quando a tecla 'Q' for pressionada."""
+        """Ação executada quando a tecla x for pressionada."""
+        print("Tecla detectada!")
         if (not self.hold) or (self.hold and not self.checkbox.isChecked()):
             self.checkbox.setChecked(not self.checkbox.isChecked())
-            self.timer.start(int(1000 * self.timer_average))  # Reinicia o temporizador
-            print("Auto-clique ativado!")
+            self.time_elapsed = 0
 
     def on_key_release(self, event):
-        """Ação executada quando a tecla 'Q' for liberada."""
+        """Ação executada quando a tecla x for liberada."""
+        print("Tecla solta detectado!")
         if self.checkbox.isChecked() and self.hold:
             self.checkbox.setChecked(False)
-            self.timer.stop()  # Para o temporizador
-            print("Auto-clique desativado!")
 
     def closeEvent(self, event):
         """Remove os ganchos globais ao fechar a aplicação."""
@@ -233,7 +232,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_setting_window(self):
         """Abre a janela de configuração sem fechar a janela principal."""
         if self.setting_window is None or not self.setting_window.isVisible():
-            self.setting_window = SettingWindow(hold_ref=[self.hold], current_key=self.active_key)  # Passa referência de hold
+            self.setting_window = SettingWindow(hold_ref=self.hold, current_key=self.active_key)  # Passa referência de hold
             self.setting_window.hold_changed.connect(self.update_hold)  # Conecta sinal para sincronizar alterações
             self.setting_window.key_changed.connect(self.update_key)  # Conecta sinal
             self.setting_window.show()
