@@ -16,7 +16,7 @@ class SettingWindow(QtWidgets.QWidget):
         self.setWindowTitle("Settings")
         self.setGeometry(100, 100, 300, 200)
         self.setFixedSize(300, 250)
-        self.setWindowIcon(QtGui.QIcon())
+        self.setWindowIcon(QtGui.QIcon("assets/click.ico"))
 
         self.setStyleSheet("""
             QWidget {
